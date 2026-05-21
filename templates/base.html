@@ -1,0 +1,109 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}Atlas{% endblock %}</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    background: #f5f6fa;
+    color: #1f2937;
+  }
+  header {
+    background: #1e293b;
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header a { color: #cbd5e1; text-decoration: none; margin-left: 16px; }
+  header a:hover { color: white; }
+  header .brand { font-weight: 600; font-size: 18px; color: white; }
+  main { max-width: 960px; margin: 32px auto; padding: 0 16px; }
+  .card {
+    background: white;
+    padding: 24px 28px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  h1 { margin-top: 0; }
+  label { display: block; margin: 12px 0 4px; font-weight: 500; }
+  input[type="text"], input[type="email"], input[type="password"], input[type="file"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  button, .btn {
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 16px;
+    text-decoration: none;
+  }
+  button:hover, .btn:hover { background: #1d4ed8; }
+  .error {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 16px 0;
+  }
+  .helptext { color: #64748b; font-size: 12px; }
+  ul.errorlist { color: #b91c1c; padding-left: 18px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 14px; }
+  th { background: #f1f5f9; }
+  tr.mismatch { background: #fef3c7; }
+  tr.missing { background: #fee2e2; }
+  tr.null    { background: #ede9fe; }
+  .summary { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .summary div {
+    flex: 1 1 140px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+  }
+  .summary .count { font-size: 22px; font-weight: 600; }
+  .ok    { color: #16a34a; }
+  .warn  { color: #d97706; }
+  .bad   { color: #dc2626; }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">Atlas — File Comparator</span>
+  <nav>
+    {% if user.is_authenticated %}
+      <span>Hi, {{ user.username }}</span>
+      <a href="{% url 'compare' %}">Compare</a>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" style="background:none;color:#cbd5e1;padding:0;margin:0;font-size:14px;">Logout</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'signup' %}">Sign up</a>
+    {% endif %}
+  </nav>
+</header>
+<main>
+{% if messages %}
+  {% for message in messages %}<div class="error">{{ message }}</div>{% endfor %}
+{% endif %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

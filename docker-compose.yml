@@ -1,0 +1,75 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: atlas-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: atlas_root
+      MYSQL_DATABASE: atlas
+      MYSQL_USER: atlas
+      MYSQL_PASSWORD: atlas
+    ports:
+      - "3306:3306"
+    volumes:
+      - atlas_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-patlas_root"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: atlas-redis
+    restart: unless-stopped
+    ports:
+      # Forwarding 6379 lets local `manage.py runserver` + local worker
+      # use this same broker without installing redis on the Mac.
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    image: atlas:latest
+    container_name: atlas-web
+    ports:
+      - "8000:8000"
+    environment: &django_env
+      DJANGO_DEBUG: "0"
+      DJANGO_SECRET_KEY: "change-me-to-a-long-random-string-before-real-deployment"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DJANGO_DB_HOST: "db"
+      DJANGO_DB_PORT: "3306"
+      DJANGO_DB_NAME: "atlas"
+      DJANGO_DB_USER: "atlas"
+      DJANGO_DB_PASSWORD: "atlas"
+      DJANGO_REDIS_URL: "redis://redis:6379/0"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    image: atlas:latest
+    container_name: atlas-worker
+    # Same image, same code — just runs Celery instead of gunicorn.
+    # Overriding the Dockerfile ENTRYPOINT skips migrate/collectstatic (web handles those).
+    entrypoint: []
+    command: ["celery", "-A", "atlas", "worker", "-l", "info", "--concurrency", "2"]
+    environment: *django_env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  atlas_db_data:

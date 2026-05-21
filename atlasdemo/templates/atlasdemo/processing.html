@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Processing…{% endblock %}
+{% block content %}
+{# Auto-refresh every 2 seconds until the worker is done. #}
+<meta http-equiv="refresh" content="2">
+<div class="card" style="max-width:520px;margin:0 auto;text-align:center;">
+  <h1>Comparing your files…</h1>
+  <p>This page refreshes every 2 seconds. You can also leave and come back —
+     the result will be waiting at this URL.</p>
+  <p style="color:#64748b;font-size:13px;">Job ID: <code>{{ job.id }}</code> &middot; Status: <strong>{{ job.get_status_display }}</strong></p>
+  <div style="margin-top:16px;">
+    <span style="display:inline-block;width:14px;height:14px;border:3px solid #cbd5e1;border-top-color:#2563eb;border-radius:50%;animation:spin 0.8s linear infinite;"></span>
+  </div>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+# Local-only files we don't want copied into the image.
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local SQLite DB — the container uses its own at /data/db.sqlite3.
+db.sqlite3
+db.sqlite3-journal
+
+# Uploaded files / collected static (regenerated inside the container).
+media/
+staticfiles/
+
+# Dev tools / virtualenvs.
+.venv/
+venv/
+.env
+.env.*
+
+# IDE / OS.
+.vscode/
+.idea/
+.DS_Store
+
+# Git history isn't needed inside the image.
+.git/
+.gitignore
+
+# Sample/test data shouldn't ship with the image.
+*.xlsx
+*.xls
+*.csv
+
+# Don't ship the Dockerfile/compose into the image itself.
+Dockerfile
+docker-compose.yml
+.dockerignore

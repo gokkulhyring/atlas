@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Comparison results{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Comparison results</h1>
+  <p><strong>File A:</strong> {{ file_a_name }} &nbsp;|&nbsp;
+     <strong>File B:</strong> {{ file_b_name }}</p>
+
+  <div class="summary">
+    <div><div class="count ok">{{ result.matched|length }}</div>matched</div>
+    <div><div class="count warn">{{ result.mismatched|length }}</div>amount mismatches</div>
+    <div><div class="count bad">{{ result.missing_in_b|length }}</div>only in File A</div>
+    <div><div class="count bad">{{ result.missing_in_a|length }}</div>only in File B</div>
+    <div><div class="count warn">{{ result.null_rows|length }}</div>null / invalid rows</div>
+  </div>
+
+  {% if not result.has_issues %}
+    <div class="card" style="background:#dcfce7;border:1px solid #86efac;color:#166534;">
+      All transaction IDs match and all amounts agree. No issues found.
+    </div>
+  {% endif %}
+
+  {% if result.mismatched %}
+    <h2>Amount mismatches</h2>
+    <table>
+      <thead><tr><th>transaction ID</th><th>amount (File A)</th><th>amount (File B)</th></tr></thead>
+      <tbody>
+        {% for row in result.mismatched %}
+          <tr class="mismatch">
+            <td>{{ row.transaction_id }}</td>
+            <td>{{ row.amount_a }}</td>
+            <td>{{ row.amount_b }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if result.missing_in_b %}
+    <h2>Transaction IDs only in File A (missing in File B)</h2>
+    <table>
+      <thead><tr><th>transaction ID</th><th>amount (File A)</th></tr></thead>
+      <tbody>
+        {% for row in result.missing_in_b %}
+          <tr class="missing"><td>{{ row.transaction_id }}</td><td>{{ row.amount_a }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if result.missing_in_a %}
+    <h2>Transaction IDs only in File B (missing in File A)</h2>
+    <table>
+      <thead><tr><th>transaction ID</th><th>amount (File B)</th></tr></thead>
+      <tbody>
+        {% for row in result.missing_in_a %}
+          <tr class="missing"><td>{{ row.transaction_id }}</td><td>{{ row.amount_b }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if result.null_rows %}
+    <h2>Rows with null / invalid values</h2>
+    <table>
+      <thead><tr><th>Source file</th><th>transaction ID</th><th>amount</th><th>Note</th></tr></thead>
+      <tbody>
+        {% for row in result.null_rows %}
+          <tr class="null">
+            <td>{{ row.source }}</td>
+            <td>{{ row.transaction_id|default_if_none:"(empty)" }}</td>
+            <td>{{ row.amount|default_if_none:"(empty)" }}</td>
+            <td>{{ row.note|default:"" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <p style="margin-top:24px;">
+    <a class="btn" href="{% url 'compare' %}">Compare another pair</a>
+  </p>
+</div>
+{% endblock %}
