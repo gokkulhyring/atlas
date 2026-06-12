@@ -16,7 +16,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential \
- && pip install -r requirements.txt \
+ && pip install \
+      --trusted-host pypi.org \
+      --trusted-host files.pythonhosted.org \
+      -r requirements.txt \
  && apt-get purge -y build-essential \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*

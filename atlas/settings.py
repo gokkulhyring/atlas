@@ -45,6 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'atlasdemo',
+    'custom_auth',
+    'companies',
+    'psp_banks',
+    'transactions',
+    'reconciliation',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +161,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth redirects: where Django sends users on login/logout, and which URL
 # the @login_required decorator redirects unauthenticated users to.
+AUTH_USER_MODEL = 'custom_auth.CustomUser'
+
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'compare'
 LOGOUT_REDIRECT_URL = 'login'
@@ -179,3 +187,11 @@ CELERY_TASK_SOFT_TIME_LIMIT = 540  # raise SoftTimeLimitExceeded at 9 min
 # Max upload size 10MB (Django default is 2.5MB which is small for Excel).
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+
+# DynamoDB — PSP-side transaction store. Local dev points at the dynamodb-local
+# container; the AWS creds are dummy values that local DynamoDB ignores.
+AWS_REGION = os.environ.get("AWS_REGION", "ap-southeast-2")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "local")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "local")
+DYNAMODB_ENDPOINT_URL = os.environ.get("DYNAMODB_ENDPOINT_URL", "http://dynamodb-local:8000")
+DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "atlas_psp_transactions")

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Reconciliation{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Reconciliation</h1>
+  <p>Pick a PSP bank and a reconcile date. The PSP side loads from DynamoDB, the
+     ATLAS side from MySQL, then they're matched on
+     <strong>{% if matching_rules %}{{ matching_rules|join:", " }}{% else %}transaction_number{% endif %}</strong>.</p>
+
+  <form method="get">
+    <label for="psp_bank_id">PSP bank</label>
+    <select name="psp_bank_id" id="psp_bank_id">
+      <option value="">— select —</option>
+      {% for b in psp_banks %}
+        <option value="{{ b.id }}" {% if psp_bank_id == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="reconcile_date">Reconcile date</label>
+    <input type="text" name="reconcile_date" id="reconcile_date"
+           value="{{ reconcile_date|default:'' }}" placeholder="YYYY-MM-DD">
+
+    <button type="submit">Reconcile</button>
+  </form>
+</div>
+
+{% if has_result %}
+<div class="card" style="margin-top:24px;">
+  <h2>{{ psp_bank.name }} — {{ reconcile_date }}</h2>
+  <div class="summary">
+    <div><div class="count ok">{{ matched|length }}</div>Matched</div>
+    <div><div class="count warn">{{ psp_unrec|length }}</div>PSP unreconciled</div>
+    <div><div class="count bad">{{ atlas_unrec|length }}</div>ATLAS unreconciled</div>
+  </div>
+
+  <h3>Matched</h3>
+  <table>
+    <thead><tr><th>Txn #</th><th>PSP credit</th><th>PSP debit</th><th>ATLAS credit</th><th>ATLAS debit</th></tr></thead>
+    <tbody>
+      {% for m in matched %}
+      <tr><td>{{ m.psp.transaction_number }}</td><td>{{ m.psp.credit_amount }}</td>
+          <td>{{ m.psp.debit_amount }}</td><td>{{ m.atlas.credit_amount }}</td>
+          <td>{{ m.atlas.debit_amount }}</td></tr>
+      {% empty %}<tr><td colspan="5">None</td></tr>{% endfor %}
+    </tbody>
+  </table>
+
+  <h3>PSP unreconciled <span class="helptext">(in DynamoDB, no ATLAS match)</span></h3>
+  <table>
+    <thead><tr><th>Txn #</th><th>Datetime</th><th>Credit</th><th>Debit</th><th>Customer</th></tr></thead>
+    <tbody>
+      {% for p in psp_unrec %}
+      <tr class="missing"><td>{{ p.transaction_number }}</td><td>{{ p.transaction_datetime }}</td>
+          <td>{{ p.credit_amount }}</td><td>{{ p.debit_amount }}</td><td>{{ p.customer_email }}</td></tr>
+      {% empty %}<tr><td colspan="5">None</td></tr>{% endfor %}
+    </tbody>
+  </table>
+
+  <h3>ATLAS unreconciled <span class="helptext">(in MySQL, no PSP match)</span></h3>
+  <table>
+    <thead><tr><th>Txn #</th><th>Date</th><th>Credit</th><th>Debit</th><th>Description</th></tr></thead>
+    <tbody>
+      {% for t in atlas_unrec %}
+      <tr class="mismatch"><td>{{ t.transaction_number }}</td><td>{{ t.transaction_date }}</td>
+          <td>{{ t.credit_amount }}</td><td>{{ t.debit_amount }}</td><td>{{ t.description }}</td></tr>
+      {% empty %}<tr><td colspan="5">None</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

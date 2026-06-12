@@ -7,5 +7,6 @@ urlpatterns = [
     # Django's built-in auth views: /login/, /logout/, password reset, etc.
     path('', include('django.contrib.auth.urls')),
     # Our app's URLs: /, /signup/, /compare/
+    path('reconciliation/', include('reconciliation.urls')),
     path('', include('atlasdemo.urls')),
 ]
